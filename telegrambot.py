@@ -6,24 +6,15 @@ from dotenv import load_dotenv
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
-# Configurare logging pentru a vedea mesaje în consolă
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-
-# Încărcare token din fișierul .env
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
-# Verificare token
 if not TOKEN:
     raise ValueError("Tokenul nu a fost găsit! Asigură-te că fișierul .env există și conține BOT_TOKEN=tokenul_tău")
 
-# Dicționar cu răspunsuri (l-am păstrat exact ca tine, doar am corectat un mic detaliu la "cum aplic?")
 response_options = {
     "servicii 🔧⚙": {
-        "text": "**🔧 Servicii oferite de CNED:**\n\n"
+        "text": "**🔧 Servicii oferite:**\n\n"
                 "**Audit energetic** - Evaluarea consumului energetic\n"
                 "**Proiectare sisteme eficiente** - Soluții personalizate\n"
                 "**Consultanță tehnică** - Asistență pentru proiecte EE\n"
@@ -62,11 +53,11 @@ response_options = {
         "options": ["🏠 Meniul Principal", "Contact📞"]
     },
     "📈 monitorizare": {
-        "text": "CNED oferă sisteme complete de monitorizare energetică care permit urmărirea continuă a consumului de energie electrică, termică, apă și gaze. Prin intermediul senzorilor non-invazivi instalați în punctele cheie de consum, sistemul colectează date în timp real 24/7, oferind o imagine exactă și actualizată a fluxurilor energetice. \n\n",
+        "text": "Oferim sisteme complete de monitorizare energetică care permit urmărirea continuă a consumului de energie electrică, termică, apă și gaze. Prin intermediul senzorilor non-invazivi instalați în punctele cheie de consum, sistemul colectează date în timp real 24/7, oferind o imagine exactă și actualizată a fluxurilor energetice. \n\n",
         "options": ["🏠 Meniul Principal", "Contact📞"]
     },
     "📑 raportare": {
-        "text": "CNED asigură raportarea energetică obligatorie conform Legii 139/2018. Generăm automat rapoarte lunare și anuale cu analiza consumurilor și recomandări de optimizare. Asistăm la raportarea către ANRE și Ministerul Energiei, respectând termenele legale. Beneficii: evitarea amenzilor, acces la fonduri europene, îmbunătățirea imaginii corporative.\n\n",
+        "text": "Raportarea energetică obligatorie conform Legii 139/2018. Generăm automat rapoarte lunare și anuale cu analiza consumurilor și recomandări de optimizare. Asistăm la raportarea către ANRE și Ministerul Energiei, respectând termenele legale. Beneficii: evitarea amenzilor, acces la fonduri europene, îmbunătățirea imaginii corporative.\n\n",
         "options": ["🏠 Meniul Principal", "Contact📞"]
     },
     "programe de finanțare📝": {
@@ -86,12 +77,12 @@ response_options = {
         "options": ["🏠 Meniul principal"]
     },
     "ℹ️ informații": {
-        "text": "ℹ️ **Despre CNED:**\n\n"
+        "text": "ℹ️ **Despre noi:**\n\n"
                 "Centrul Național pentru Energie Durabilă (CNED) este o instituție publică din Republica Moldova aflată în subordinea Ministerului Energiei, menită să coordoneze și să organizeze implementarea politicilor de stat în domeniul eficienței energetice și energiei durabile.",
         "options": ["🎯 Obiective", "📞 Contact", "🏠 Meniul principal"]
     },
     "🎯 obiective": { 
-        "text": "**Obiectivele principale ale CNED:**\n\n"
+        "text": "**Obiectivele principale:**\n\n"
                 "✅ Reducem consumul de energie și dependența de energia importată\n\n"
                 "✅ Stimulăm investițiile în energie durabilă și tehnologii curate\n\n"
                 "✅ Creștem gradul de securitate energetică a țării",
@@ -121,13 +112,12 @@ response_options = {
     },
     "cum aplic?": {
         "text": "**Pentru mai multe detalii cu privire la aplicarea pentru unul dintre programele oferite, consultați site-ul oficial: https://cned.gov.md/ro**\n\n",
-        "options": ["🏠 Meniul principal"]   # am adăugat opțiunea de revenire
+        "options": ["🏠 Meniul principal"]   
     }
 }
 
-# Funcția de start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    welcome_text = "Salut! Sunt asistentul tău CNED! 💡\n\n"
+    welcome_text = "Salut! Sunt asistentul tău! 💡\n\n"
     welcome_text += "Pot să-ți ofer informații despre:\n"
     welcome_text += "• Servicii 🔧⚙\n• Programe de finanțare📝\n• Contact📞\n• Informațiiℹ️"
     
@@ -139,24 +129,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(welcome_text, reply_markup=reply_markup)
 
-# Funcție pentru a răspunde mesajelor
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     
-    # Dacă utilizatorul scrie "meniul principal" sau apasă butonul corespunzător
     if "meniul principal" in user_message.lower() or "🏠" in user_message:
         await start(update, context)
         return
     
-    # Normalizăm mesajul pentru căutare (eliminăm emoji-urile și facem lowercase)
     normalized_message = user_message.lower()
     search_message = re.sub(r'[^\w\s]', '', normalized_message).strip()
     
-    # Căutăm cel mai potrivit răspuns
     response = None
     matched_key = None
     
-    # Mai întâi încercăm să găsim o potrivire exactă
     for key in response_options:
         normalized_key = re.sub(r'[^\w\s]', '', key.lower()).strip()
         if search_message == normalized_key or normalized_message == key.lower():
@@ -164,7 +149,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             matched_key = key
             break
     
-    # Dacă nu găsim potrivire exactă, căutăm parțial
     if not response:
         for key in response_options:
             normalized_key = re.sub(r'[^\w\s]', '', key.lower()).strip()
@@ -173,7 +157,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 matched_key = key
                 break
     
-    # Dacă nu găsim un răspuns specific, oferim răspuns generic
     if not response:
         random_responses = [
             "Nu sunt sigur că înțeleg. Pot să te ajut cu alte informații?",
@@ -189,13 +172,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(generic_text, reply_markup=reply_markup)
         return
     
-    # Verificăm dacă răspunsul are opțiuni pentru tastatură
     if "options" in response:
         # Creăm tastatura cu opțiunile pentru răspuns
         keyboard = []
         options = response["options"]
         
-        # Grupăm opțiunile câte 2 pe rând
         for i in range(0, len(options), 2):
             if i + 1 < len(options):
                 keyboard.append([options[i], options[i + 1]])
@@ -205,15 +186,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await update.message.reply_text(response["text"], reply_markup=reply_markup, parse_mode='Markdown')
     else:
-        # Dacă nu are opțiuni, trimitem doar textul cu buton pentru meniul principal
         keyboard = [["🏠 Meniul principal"]]
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
         await update.message.reply_text(response["text"], reply_markup=reply_markup, parse_mode='Markdown')
-
-# Funcție pentru comanda /custom
 async def custom(update: Update, context: ContextTypes.DEFAULT_TYPE):
     info_text = (
-        "🤖 **CNEDBot - Asistentul tău virtual**\n\n"
+        "🤖 **Bot - Asistentul tău virtual**\n\n"
         "**Comenzi disponibile:**\n"
         "/start - Începe conversația\n"
         "/custom - Informații despre bot\n"
@@ -222,8 +200,6 @@ async def custom(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Folosește butoanele pentru a naviga prin meniuri!"
     )
     await update.message.reply_text(info_text, parse_mode='Markdown')
-
-# Funcție pentru comanda /help
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_text = (
         "🆘 **Ajutor**\n\n"
@@ -237,7 +213,6 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(help_text, parse_mode='Markdown')
 
-# Construirea aplicației și adăugarea handler-elor
 def main():
     application = ApplicationBuilder().token(TOKEN).build()
 
@@ -246,8 +221,9 @@ def main():
     application.add_handler(CommandHandler('help', help_command))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
-    print("🤖 Botul rulează... (apasă Ctrl+C pentru a opri)")
+    print("🤖 Botul rulează...")
     application.run_polling()
 
 if __name__ == "__main__":
+
     main()
