@@ -173,7 +173,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     if "options" in response:
-        # Creăm tastatura cu opțiunile pentru răspuns
         keyboard = []
         options = response["options"]
         
@@ -227,3 +226,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
